@@ -5621,26 +5621,19 @@ const PLAYER_DATA = [
 {"Name":"Kyle Farmer","Team":"COL","G":97,"PA":300,"HR":8,"R":24,"RBI":31,"PlayerId":14813}
 ];
 
-// Team abbreviation -> ESPN team ID mapping
-const TEAM_ESPN_IDS = {
-  "ARI": 29, "ATH": 26, "ATL": 15, "BAL": 1, "BOS": 2, "CHC": 16, "CHW": 4, "CIN": 17,
-  "CLE": 5, "COL": 27, "DET": 6, "HOU": 18, "KCR": 7, "LAA": 3, "LAD": 19, "MIA": 28,
-  "MIL": 21, "MIN": 9, "NYM": 21, "NYY": 10, "PHI": 22, "PIT": 23, "SDP": 25, "SEA": 12,
-  "SFG": 26, "STL": 24, "TBR": 30, "TEX": 13, "TOR": 14, "WSN": 20
-};
-
-// Corrected ESPN IDs
-const ESPN_TEAM_MAP = {
-  "ARI": 29, "ATH": 30, "ATL": 15, "BAL": 1, "BOS": 2, "CHC": 16, "CHW": 4, "CIN": 17,
-  "CLE": 5, "COL": 27, "DET": 6, "HOU": 18, "KCR": 7, "LAA": 3, "LAD": 19, "MIA": 28,
-  "MIL": 8, "MIN": 9, "NYM": 21, "NYY": 10, "PHI": 22, "PIT": 23, "SDP": 25, "SEA": 12,
-  "SFG": 26, "STL": 24, "TBR": 30, "TEX": 13, "TOR": 14, "WSN": 20
+const ESPN_ABBREV = {
+  "ARI":"ari","ATH":"oak","ATL":"atl","BAL":"bal","BOS":"bos",
+  "CHC":"chc","CHW":"chw","CIN":"cin","CLE":"cle","COL":"col",
+  "DET":"det","HOU":"hou","KCR":"kc", "LAA":"laa","LAD":"lad",
+  "MIA":"mia","MIL":"mil","MIN":"min","NYM":"nym","NYY":"nyy",
+  "PHI":"phi","PIT":"pit","SDP":"sd", "SEA":"sea","SFG":"sf",
+  "STL":"stl","TBR":"tb", "TEX":"tex","TOR":"tor","WSN":"wsh"
 };
 
 function getLogoUrl(team) {
-  const id = ESPN_TEAM_MAP[team];
-  if (!id) return null;
-  return `https://a.espncdn.com/i/teamlogos/mlb/500/${team.toLowerCase()}.png`;
+  const abbrev = ESPN_ABBREV[team];
+  if (!abbrev) return null;
+  return `https://a.espncdn.com/i/teamlogos/mlb/500/${abbrev}.png`;
 }
 
 // ═══════════════════════════════════════════════
