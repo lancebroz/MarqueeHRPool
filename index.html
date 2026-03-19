@@ -135,11 +135,109 @@
   .page.active { display: block; }
 
   /* ─── BUILDER PAGE ─── */
-  .builder-grid {
+  /* ─── BUILDER TOP BAR ─── */
+  .builder-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .add-lineup-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    background: rgba(74,158,255,0.08);
+    border: 1px solid rgba(74,158,255,0.25);
+    border-radius: 4px;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .add-lineup-btn:hover {
+    background: rgba(74,158,255,0.15);
+    border-color: var(--accent);
+  }
+
+  /* ─── LINEUPS CONTAINER ─── */
+  #lineups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .lineup-wrap {
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 24px;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
     align-items: start;
+  }
+
+  /* ─── LINEUP CARD HEADER ─── */
+  .lineup-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .lineup-card-header .lineup-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+
+  .lineup-card-header .lineup-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .remove-lineup-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .remove-lineup-btn:hover {
+    color: var(--red);
+    border-color: var(--red);
+    background: var(--red-glow);
+  }
+
+  /* ─── LINEUP DIVIDER ─── */
+  .lineup-divider {
+    border: none;
+    border-top: 1px dashed var(--border-light);
+    margin: 0;
   }
 
   .section-label {
@@ -961,8 +1059,9 @@
 
   /* ─── RESPONSIVE ─── */
   @media (max-width: 700px) {
-    .builder-grid, .tracker-layout { grid-template-columns: 1fr; }
+    .lineup-wrap, .tracker-layout { grid-template-columns: 1fr; }
     .counter-card, .rosters-card { position: static; }
+    .lineup-wrap { gap: 16px; }
     .header-inner { flex-wrap: wrap; }
     nav { width: 100%; }
     .tab-btn { flex: 1; text-align: center; }
@@ -1008,93 +1107,22 @@
 
   <!-- ═══ BUILDER PAGE ═══ -->
   <div id="page-builder" class="page active">
-    <div class="builder-grid">
-
-      <!-- LEFT: ROSTER SLOTS -->
-      <div class="roster-card">
-        <div class="roster-header">
-          <div class="section-label">Draft Your Roster</div>
-          <h2>8-Player Lineup</h2>
-          <button class="see-all-btn" onclick="openModal()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 1L13 7L7 13M1 7H13" stroke="#f0c040" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            See All Eligible Hitters
-          </button>
-        </div>
-        <div class="slots-container" id="slots-container">
-          <!-- Slots injected by JS -->
-        </div>
-      </div>
-
-      <!-- RIGHT: COUNTER -->
-      <div class="counter-card">
-        <div class="counter-hero">
-          <div class="counter-label">Total Home Runs</div>
-          <div class="counter-num safe" id="counter-num">0</div>
-          <div class="counter-slash">out of</div>
-          <div class="counter-max">172</div>
-        </div>
-        <div class="progress-wrap">
-          <div class="progress-track">
-            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-          </div>
-          <div class="progress-labels">
-            <span>0</span>
-            <span id="progress-pct">0%</span>
-            <span>172</span>
-          </div>
-        </div>
-        <div class="remaining-wrap">
-          <div class="remaining-row">
-            <span class="label">Players Filled</span>
-            <span class="value" id="filled-count">0 / 8</span>
-          </div>
-          <div class="remaining-row">
-            <span class="label">HR Remaining</span>
-            <span class="value good" id="remaining-val">172</span>
-          </div>
-          <div class="remaining-row">
-            <span class="label">Avg HR / Slot</span>
-            <span class="value" id="avg-hr">—</span>
-          </div>
-        </div>
-        <div class="proj-toggle-wrap">
-          <div class="proj-toggle-label">
-            2026 HR Projections
-            <span>BETA</span>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="proj-toggle" onchange="toggleProjections()">
-            <div class="toggle-track"></div>
-          </label>
-        </div>
-        <div class="proj-panel" id="proj-panel">
-          <div class="proj-panel-inner">
-            <div class="proj-panel-title">Projected 2026 HR Totals — Your Roster</div>
-            <div class="proj-row">
-              <span class="proj-sys">Steamer</span>
-              <div class="proj-bar-wrap"><div class="proj-bar" id="proj-bar-s" style="width:0%"></div></div>
-              <span class="proj-val" id="proj-val-s">—</span>
-            </div>
-            <div class="proj-row">
-              <span class="proj-sys">ATC</span>
-              <div class="proj-bar-wrap"><div class="proj-bar" id="proj-bar-a" style="width:0%"></div></div>
-              <span class="proj-val" id="proj-val-a">—</span>
-            </div>
-            <div class="proj-row">
-              <span class="proj-sys">BatX</span>
-              <div class="proj-bar-wrap"><div class="proj-bar" id="proj-bar-b" style="width:0%"></div></div>
-              <span class="proj-val" id="proj-val-b">—</span>
-            </div>
-            <div class="proj-missing" id="proj-missing"></div>
-          </div>
-        </div>
-        <div class="status-msg ok" id="status-msg">
-          Start adding players to build your roster.
-        </div>
-      </div>
-
+    <div class="builder-top-bar">
+      <button class="see-all-btn" onclick="openModal()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1L13 7L7 13M1 7H13" stroke="#f0c040" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        See All Eligible Hitters
+      </button>
+      <button class="add-lineup-btn" onclick="addLineup()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1V13M1 7H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Add Another Lineup
+      </button>
+    </div>
+    <div id="lineups-container">
+      <!-- Lineup cards injected by JS -->
     </div>
   </div>
 
@@ -1132,7 +1160,7 @@
 <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">All Eligible Hitters — 2025 Season</div>
+      <div class="modal-title">All Eligible Hitters — 2025 (9+ HR)</div>
       <button class="modal-close" onclick="closeModal()">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -5642,32 +5670,178 @@ function getLogoUrl(team) {
 
 const MAX_HR = 172;
 const NUM_SLOTS = 8;
-let roster = Array(NUM_SLOTS).fill(null);
-let activeSlot = -1;
+const MIN_HR = 9;
+
+// Filter player data to 9+ HR only
+const ELIGIBLE = PLAYER_DATA.filter(p => p.HR >= MIN_HR);
+
+// lineups: array of {id, roster[8], projOpen}
+let lineups = [];
+let lineupCounter = 0;
+let activeLineupId = null;
+let activeSlotIdx = -1;
 let acHighlight = -1;
 let acMatches = [];
+let modalTargetLineupId = null;
 
 // ═══════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════
 
 function init() {
-  buildSlots();
+  addLineup(); // start with one lineup
   buildModalTable();
   buildTrackerPlaceholder();
-  updateCounter();
 }
 
-function buildSlots() {
-  const container = document.getElementById('slots-container');
-  container.innerHTML = '';
-  for (let i = 0; i < NUM_SLOTS; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'slot';
-    slot.id = `slot-${i}`;
-    slot.innerHTML = `
+// ═══════════════════════════════════════════════
+//  LINEUP MANAGEMENT
+// ═══════════════════════════════════════════════
+
+function addLineup() {
+  const id = ++lineupCounter;
+  lineups.push({ id, roster: Array(NUM_SLOTS).fill(null), projOpen: false });
+  renderLineupCard(id);
+  // Scroll to new card
+  setTimeout(() => {
+    const el = document.getElementById(`lineup-${id}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+function removeLineup(id) {
+  if (lineups.length <= 1) return; // keep at least one
+  lineups = lineups.filter(l => l.id !== id);
+  const el = document.getElementById(`lineup-${id}`);
+  if (el) {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-8px)';
+    el.style.transition = 'opacity 0.2s, transform 0.2s';
+    setTimeout(() => el.remove(), 220);
+  }
+}
+
+function getLineup(id) {
+  return lineups.find(l => l.id === id);
+}
+
+function renderLineupCard(id) {
+  const container = document.getElementById('lineups-container');
+  const lineupNum = lineups.findIndex(l => l.id === id) + 1;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'lineup-wrap';
+  wrap.id = `lineup-${id}`;
+  wrap.style.opacity = '0';
+  wrap.style.transform = 'translateY(10px)';
+
+  wrap.innerHTML = `
+    <!-- LEFT: ROSTER SLOTS -->
+    <div class="roster-card">
+      <div class="lineup-card-header">
+        <div>
+          <div class="lineup-num">Lineup ${lineupNum}</div>
+          <div class="lineup-title">8-Player Roster</div>
+        </div>
+        ${lineups.length > 1 ? `
+        <button class="remove-lineup-btn" onclick="removeLineup(${id})">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Remove
+        </button>` : ''}
+      </div>
+      <div class="slots-container" id="slots-${id}">
+        ${Array.from({length: NUM_SLOTS}, (_, i) => buildSlotHTML(id, i)).join('')}
+      </div>
+    </div>
+
+    <!-- RIGHT: COUNTER -->
+    <div class="counter-card" id="counter-${id}">
+      <div class="counter-hero">
+        <div class="counter-label">Total Home Runs</div>
+        <div class="counter-num safe" id="cnum-${id}">0</div>
+        <div class="counter-slash">out of</div>
+        <div class="counter-max">172</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track">
+          <div class="progress-fill" id="pfill-${id}" style="width:0%"></div>
+        </div>
+        <div class="progress-labels">
+          <span>0</span>
+          <span id="ppct-${id}">0%</span>
+          <span>172</span>
+        </div>
+      </div>
+      <div class="remaining-wrap">
+        <div class="remaining-row">
+          <span class="label">Players Filled</span>
+          <span class="value" id="filled-${id}">0 / 8</span>
+        </div>
+        <div class="remaining-row">
+          <span class="label">HR Remaining</span>
+          <span class="value good" id="remaining-${id}">172</span>
+        </div>
+        <div class="remaining-row">
+          <span class="label">Avg HR / Slot</span>
+          <span class="value" id="avgs-${id}">—</span>
+        </div>
+      </div>
+      <div class="proj-toggle-wrap">
+        <div class="proj-toggle-label">
+          2026 HR Projections
+          <span>BETA</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="ptog-${id}" onchange="toggleProjections(${id})">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+      <div class="proj-panel" id="ppanel-${id}">
+        <div class="proj-panel-inner">
+          <div class="proj-panel-title">Projected 2026 HR Totals</div>
+          <div class="proj-row">
+            <span class="proj-sys">Steamer</span>
+            <div class="proj-bar-wrap"><div class="proj-bar" id="pbar-s-${id}" style="width:0%"></div></div>
+            <span class="proj-val" id="pval-s-${id}">—</span>
+          </div>
+          <div class="proj-row">
+            <span class="proj-sys">ATC</span>
+            <div class="proj-bar-wrap"><div class="proj-bar" id="pbar-a-${id}" style="width:0%"></div></div>
+            <span class="proj-val" id="pval-a-${id}">—</span>
+          </div>
+          <div class="proj-row">
+            <span class="proj-sys">BatX</span>
+            <div class="proj-bar-wrap"><div class="proj-bar" id="pbar-b-${id}" style="width:0%"></div></div>
+            <span class="proj-val" id="pval-b-${id}">—</span>
+          </div>
+          <div class="proj-missing" id="pmiss-${id}"></div>
+        </div>
+      </div>
+      <div class="status-msg ok" id="status-${id}">
+        Start adding players to build your roster.
+      </div>
+    </div>
+  `;
+
+  container.appendChild(wrap);
+
+  // Animate in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      wrap.style.transition = 'opacity 0.25s, transform 0.25s';
+      wrap.style.opacity = '1';
+      wrap.style.transform = 'translateY(0)';
+    });
+  });
+}
+
+function buildSlotHTML(lid, i) {
+  return `
+    <div class="slot" id="slot-${lid}-${i}">
       <span class="slot-num">${i + 1}</span>
-      <div class="slot-logo empty" id="logo-${i}">
+      <div class="slot-logo empty" id="logo-${lid}-${i}">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <circle cx="7" cy="7" r="6" stroke="#4a5260" stroke-width="1.5" stroke-dasharray="2 2"/>
         </svg>
@@ -5675,142 +5849,160 @@ function buildSlots() {
       <div class="slot-input-wrapper">
         <input
           class="slot-input"
-          id="input-${i}"
+          id="input-${lid}-${i}"
           type="text"
           placeholder="Add player..."
           autocomplete="off"
           spellcheck="false"
-          oninput="onSlotInput(${i})"
-          onkeydown="onSlotKey(event, ${i})"
-          onfocus="onSlotFocus(${i})"
-          onblur="onSlotBlur(${i})"
+          oninput="onSlotInput(${lid},${i})"
+          onkeydown="onSlotKey(event,${lid},${i})"
+          onfocus="onSlotFocus(${lid},${i})"
+          onblur="onSlotBlur(${lid},${i})"
         >
-        <div class="autocomplete-dropdown" id="ac-${i}"></div>
+        <div class="autocomplete-dropdown" id="ac-${lid}-${i}"></div>
       </div>
-      <span class="slot-hr" id="hr-${i}">—</span>
-      <button class="slot-clear" onclick="clearSlot(${i})" title="Remove">
+      <span class="slot-hr" id="hr-${lid}-${i}">—</span>
+      <button class="slot-clear" onclick="clearSlot(${lid},${i})" title="Remove">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
           <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </button>
-    `;
-    container.appendChild(slot);
-  }
+    </div>`;
 }
 
 // ═══════════════════════════════════════════════
 //  SLOT LOGIC
 // ═══════════════════════════════════════════════
 
-function onSlotFocus(i) {
-  activeSlot = i;
-  if (!roster[i]) {
-    showAC(i, document.getElementById(`input-${i}`).value);
+function onSlotFocus(lid, i) {
+  activeLineupId = lid;
+  activeSlotIdx = i;
+  const lineup = getLineup(lid);
+  if (!lineup.roster[i]) {
+    showAC(lid, i, document.getElementById(`input-${lid}-${i}`).value);
   }
 }
 
-function onSlotBlur(i) {
+function onSlotBlur(lid, i) {
   setTimeout(() => {
-    hideAC(i);
-    if (!roster[i]) {
-      document.getElementById(`input-${i}`).value = '';
+    hideAC(lid, i);
+    const lineup = getLineup(lid);
+    if (lineup && !lineup.roster[i]) {
+      document.getElementById(`input-${lid}-${i}`).value = '';
     }
   }, 200);
 }
 
-function onSlotInput(i) {
-  roster[i] = null;
-  updateSlotLogo(i, null);
-  document.getElementById(`hr-${i}`).textContent = '—';
-  showAC(i, document.getElementById(`input-${i}`).value);
-  updateCounter();
+function onSlotInput(lid, i) {
+  const lineup = getLineup(lid);
+  if (!lineup) return;
+  lineup.roster[i] = null;
+  updateSlotLogo(lid, i, null);
+  document.getElementById(`hr-${lid}-${i}`).textContent = '—';
+  showAC(lid, i, document.getElementById(`input-${lid}-${i}`).value);
+  updateCounter(lid);
 }
 
-function onSlotKey(e, i) {
+function onSlotKey(e, lid, i) {
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     acHighlight = Math.min(acHighlight + 1, acMatches.length - 1);
-    renderACHighlight(i);
+    renderACHighlight(lid, i);
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     acHighlight = Math.max(acHighlight - 1, 0);
-    renderACHighlight(i);
+    renderACHighlight(lid, i);
   } else if (e.key === 'Enter') {
     if (acHighlight >= 0 && acHighlight < acMatches.length) {
-      selectPlayer(i, acMatches[acHighlight]);
+      selectPlayer(lid, i, acMatches[acHighlight]);
     }
   } else if (e.key === 'Escape') {
-    hideAC(i);
+    hideAC(lid, i);
   }
 }
 
-function showAC(i, query) {
+function getAllUsedNames(excludeLineupId, excludeSlot) {
+  // Only exclude within same lineup
+  const lineup = getLineup(excludeLineupId);
+  if (!lineup) return [];
+  return lineup.roster
+    .filter((r, idx) => r && idx !== excludeSlot)
+    .map(r => r.Name);
+}
+
+function showAC(lid, i, query) {
   const q = query.trim().toLowerCase();
-  const usedNames = roster.filter((r, idx) => r && idx !== i).map(r => r.Name);
+  const usedNames = getAllUsedNames(lid, i);
 
   if (q.length === 0) {
-    acMatches = PLAYER_DATA.filter(p => !usedNames.includes(p.Name)).slice(0, 8);
+    acMatches = ELIGIBLE.filter(p => !usedNames.includes(p.Name)).slice(0, 8);
   } else {
-    acMatches = PLAYER_DATA.filter(p =>
+    acMatches = ELIGIBLE.filter(p =>
       !usedNames.includes(p.Name) &&
       (p.Name.toLowerCase().includes(q) || p.Team.toLowerCase().includes(q))
     ).slice(0, 8);
   }
 
   acHighlight = -1;
-  const dd = document.getElementById(`ac-${i}`);
-  if (acMatches.length === 0) {
-    dd.classList.remove('visible');
+  const dd = document.getElementById(`ac-${lid}-${i}`);
+  if (!dd || acMatches.length === 0) {
+    if (dd) dd.classList.remove('visible');
     return;
   }
 
   dd.innerHTML = acMatches.map((p, idx) => `
-    <div class="ac-item" id="ac-item-${i}-${idx}" onmousedown="selectPlayer(${i}, PLAYER_DATA.find(x => x.PlayerId === ${p.PlayerId}))">
-      <img class="ac-logo" src="${getLogoUrl(p.Team) || ''}" onerror="this.style.display='none'" alt="">
+    <div class="ac-item" id="ac-item-${lid}-${i}-${idx}" onmousedown="selectPlayer(${lid},${i},ELIGIBLE.find(x=>x.PlayerId===${p.PlayerId}))">
+      <img class="ac-logo" src="${getLogoUrl(p.Team)||''}" onerror="this.style.display='none'" alt="">
       <span class="ac-name">${p.Name}</span>
-      <span class="ac-team">${p.Team === '---' ? 'FA' : p.Team}</span>
+      <span class="ac-team">${p.Team==='FA'?'FA':p.Team}</span>
       <span class="ac-hr">${p.HR} HR</span>
     </div>
   `).join('');
   dd.classList.add('visible');
 }
 
-function hideAC(i) {
-  const dd = document.getElementById(`ac-${i}`);
-  if (dd) { dd.classList.remove('visible'); }
+function hideAC(lid, i) {
+  const dd = document.getElementById(`ac-${lid}-${i}`);
+  if (dd) dd.classList.remove('visible');
   acMatches = [];
   acHighlight = -1;
 }
 
-function renderACHighlight(i) {
-  const items = document.querySelectorAll(`#ac-${i} .ac-item`);
+function renderACHighlight(lid, i) {
+  const items = document.querySelectorAll(`#ac-${lid}-${i} .ac-item`);
   items.forEach((el, idx) => {
     el.classList.toggle('highlighted', idx === acHighlight);
   });
 }
 
-function selectPlayer(i, player) {
+function selectPlayer(lid, i, player) {
   if (!player) return;
-  roster[i] = player;
-  document.getElementById(`input-${i}`).value = player.Name;
-  document.getElementById(`hr-${i}`).textContent = player.HR;
-  updateSlotLogo(i, player);
-  hideAC(i);
-  updateCounter();
-  // Auto-advance to next empty slot
-  const nextEmpty = roster.findIndex((r, idx) => !r && idx > i);
+  const lineup = getLineup(lid);
+  if (!lineup) return;
+  lineup.roster[i] = player;
+  document.getElementById(`input-${lid}-${i}`).value = player.Name;
+  document.getElementById(`hr-${lid}-${i}`).textContent = player.HR;
+  updateSlotLogo(lid, i, player);
+  hideAC(lid, i);
+  updateCounter(lid);
+  // Auto-advance
+  const nextEmpty = lineup.roster.findIndex((r, idx) => !r && idx > i);
   if (nextEmpty >= 0) {
-    setTimeout(() => document.getElementById(`input-${nextEmpty}`).focus(), 100);
+    setTimeout(() => {
+      const el = document.getElementById(`input-${lid}-${nextEmpty}`);
+      if (el) el.focus();
+    }, 100);
   }
 }
 
-function updateSlotLogo(i, player) {
-  const logoEl = document.getElementById(`logo-${i}`);
+function updateSlotLogo(lid, i, player) {
+  const logoEl = document.getElementById(`logo-${lid}-${i}`);
+  if (!logoEl) return;
   if (player) {
     const url = getLogoUrl(player.Team);
     logoEl.classList.remove('empty');
     logoEl.innerHTML = url
-      ? `<img src="${url}" onerror="this.parentElement.innerHTML='<svg width=14 height=14 viewBox=\'0 0 14 14\' fill=none><text x=1 y=11 font-size=9 fill=\'#7a8494\'>${player.Team.slice(0,2)}</text></svg>'" alt="">`
+      ? `<img src="${url}" onerror="this.parentElement.innerHTML='<span style=\'font-size:8px;color:var(--text-muted)\'>${player.Team.slice(0,2)}</span>'" alt="">`
       : `<span style="font-family:'DM Mono',mono;font-size:8px;color:var(--text-muted)">${player.Team.slice(0,2)}</span>`;
   } else {
     logoEl.classList.add('empty');
@@ -5818,49 +6010,51 @@ function updateSlotLogo(i, player) {
   }
 }
 
-function clearSlot(i) {
-  roster[i] = null;
-  document.getElementById(`input-${i}`).value = '';
-  document.getElementById(`hr-${i}`).textContent = '—';
-  updateSlotLogo(i, null);
-  updateCounter();
+function clearSlot(lid, i) {
+  const lineup = getLineup(lid);
+  if (!lineup) return;
+  lineup.roster[i] = null;
+  document.getElementById(`input-${lid}-${i}`).value = '';
+  document.getElementById(`hr-${lid}-${i}`).textContent = '—';
+  updateSlotLogo(lid, i, null);
+  updateCounter(lid);
 }
 
 // ═══════════════════════════════════════════════
 //  COUNTER
 // ═══════════════════════════════════════════════
 
-function updateCounter() {
-  const filled = roster.filter(r => r !== null);
+function updateCounter(lid) {
+  const lineup = getLineup(lid);
+  if (!lineup) return;
+  const filled = lineup.roster.filter(r => r !== null);
   const total = filled.reduce((sum, p) => sum + p.HR, 0);
   const pct = Math.min((total / MAX_HR) * 100, 100);
   const remaining = MAX_HR - total;
 
-  const counterEl = document.getElementById('counter-num');
-  counterEl.textContent = total;
+  const counterEl = document.getElementById(`cnum-${lid}`);
+  const fillEl = document.getElementById(`pfill-${lid}`);
+  const statusEl = document.getElementById(`status-${lid}`);
+  const remainEl = document.getElementById(`remaining-${lid}`);
 
-  const fillEl = document.getElementById('progress-fill');
-  const statusEl = document.getElementById('status-msg');
-  const remainEl = document.getElementById('remaining-val');
+  if (!counterEl) return;
 
   const cls = total > MAX_HR ? 'over' : total >= MAX_HR * 0.85 ? 'warn' : 'safe';
   const fillCls = total > MAX_HR ? 'over' : total >= MAX_HR * 0.85 ? 'warn' : '';
 
+  counterEl.textContent = total;
   counterEl.className = `counter-num ${cls}`;
   fillEl.style.width = `${pct}%`;
   fillEl.className = `progress-fill ${fillCls}`;
 
-  document.getElementById('progress-pct').textContent = `${Math.round(pct)}%`;
-  document.getElementById('filled-count').textContent = `${filled.length} / 8`;
+  document.getElementById(`ppct-${lid}`).textContent = `${Math.round(pct)}%`;
+  document.getElementById(`filled-${lid}`).textContent = `${filled.length} / 8`;
 
   remainEl.textContent = remaining >= 0 ? `${remaining} HRs` : `OVER by ${Math.abs(remaining)}`;
   remainEl.className = `value ${remaining >= 0 ? 'good' : 'bad'}`;
 
-  if (filled.length > 0) {
-    document.getElementById('avg-hr').textContent = (total / filled.length).toFixed(1);
-  } else {
-    document.getElementById('avg-hr').textContent = '—';
-  }
+  const avgEl = document.getElementById(`avgs-${lid}`);
+  avgEl.textContent = filled.length > 0 ? (total / filled.length).toFixed(1) : '—';
 
   if (total > MAX_HR) {
     statusEl.textContent = `⚠ Over cap by ${total - MAX_HR} HRs — remove some big bats.`;
@@ -5879,14 +6073,15 @@ function updateCounter() {
     statusEl.className = 'status-msg ok';
   }
 
-  updateProjections();
+  updateProjections(lid);
 }
 
 // ═══════════════════════════════════════════════
 //  MODAL
 // ═══════════════════════════════════════════════
 
-function openModal() {
+function openModal(lid) {
+  modalTargetLineupId = lid !== undefined ? lid : (activeLineupId || lineups[0]?.id);
   document.getElementById('modal-overlay').classList.add('open');
   document.getElementById('modal-search-input').focus();
 }
@@ -5902,12 +6097,12 @@ function handleOverlayClick(e) {
 let modalFilter = '';
 
 function buildModalTable() {
-  renderModalRows(PLAYER_DATA);
+  renderModalRows(ELIGIBLE);
 }
 
 function filterModalTable() {
   modalFilter = document.getElementById('modal-search-input').value.toLowerCase();
-  const filtered = PLAYER_DATA.filter(p =>
+  const filtered = ELIGIBLE.filter(p =>
     p.Name.toLowerCase().includes(modalFilter) ||
     p.Team.toLowerCase().includes(modalFilter)
   );
@@ -5917,14 +6112,14 @@ function filterModalTable() {
 function renderModalRows(players) {
   const tbody = document.getElementById('players-tbody');
   tbody.innerHTML = players.map((p, i) => `
-    <tr onclick="addFromModal('${p.Name.replace(/'/g, "\\'")}')">
+    <tr onclick="addFromModal('${p.Name.replace(/'/g, "\'")}')">
       <td>
         <div class="player-cell">
           <img src="${getLogoUrl(p.Team) || ''}" class="ac-logo" onerror="this.style.display='none'" alt="">
           <span class="player-name">${p.Name}</span>
         </div>
       </td>
-      <td><span class="team-badge">${p.Team === '---' ? 'FA' : p.Team}</span></td>
+      <td><span class="team-badge">${p.Team === 'FA' ? 'FA' : p.Team}</span></td>
       <td class="hr-val">${p.HR}</td>
       <td class="num-val">${p.G}</td>
       <td class="num-val">${p.R}</td>
@@ -5934,19 +6129,21 @@ function renderModalRows(players) {
 }
 
 function addFromModal(name) {
-  const player = PLAYER_DATA.find(p => p.Name === name);
+  const player = ELIGIBLE.find(p => p.Name === name);
   if (!player) return;
-  // Check already on roster
-  if (roster.some(r => r && r.Name === name)) {
+  const lid = modalTargetLineupId || lineups[0]?.id;
+  const lineup = getLineup(lid);
+  if (!lineup) { closeModal(); return; }
+  if (lineup.roster.some(r => r && r.Name === name)) {
     closeModal();
     return;
   }
-  const emptyIdx = roster.findIndex(r => r === null);
+  const emptyIdx = lineup.roster.findIndex(r => r === null);
   if (emptyIdx < 0) {
-    alert('Your roster is full (8 players). Remove one to add a new player.');
+    alert('This lineup is full (8 players). Remove one to add a new player.');
     return;
   }
-  selectPlayer(emptyIdx, player);
+  selectPlayer(lid, emptyIdx, player);
   closeModal();
 }
 
@@ -5955,7 +6152,6 @@ function addFromModal(name) {
 // ═══════════════════════════════════════════════
 
 function buildTrackerPlaceholder() {
-  // Sample placeholder rosters for the UI
   const teams = [
     { name: "Team Alpha", players: ["Cal Raleigh","Kyle Schwarber","Aaron Judge","Junior Caminero","Pete Alonso","Byron Buxton","Michael Busch","Trent Grisham"] },
     { name: "Team Bravo", players: ["Shohei Ohtani","Juan Soto","Jo Adell","Nick Kurtz","Riley Greene","Vinnie Pasquantino","Francisco Lindor","Jazz Chisholm Jr."] },
@@ -5978,47 +6174,35 @@ function buildTrackerPlaceholder() {
   rosterEl.innerHTML = teams.map(t => `
     <div class="roster-team">
       <div class="roster-team-name">${t.name}</div>
-      ${t.players.map(name => {
-        const p = PLAYER_DATA.find(x => x.Name === name);
-        return `<div class="roster-player">
-          <span class="roster-player-name">${name}</span>
-          <span class="roster-player-hr">— HR</span>
-        </div>`;
-      }).join('')}
+      ${t.players.map(name => `<div class="roster-player">
+        <span class="roster-player-name">${name}</span>
+        <span class="roster-player-hr">— HR</span>
+      </div>`).join('')}
     </div>
   `).join('');
-}
-
-// ═══════════════════════════════════════════════
-//  TAB NAVIGATION
-// ═══════════════════════════════════════════════
-
-function switchTab(tab) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`page-${tab}`).classList.add('active');
-  event.currentTarget.classList.add('active');
 }
 
 // ═══════════════════════════════════════════════
 //  PROJECTIONS
 // ═══════════════════════════════════════════════
 
-function toggleProjections() {
-  const on = document.getElementById('proj-toggle').checked;
-  const panel = document.getElementById('proj-panel');
+function toggleProjections(lid) {
+  const on = document.getElementById(`ptog-${lid}`).checked;
+  const panel = document.getElementById(`ppanel-${lid}`);
   panel.classList.toggle('open', on);
-  if (on) updateProjections();
+  if (on) updateProjections(lid);
 }
 
-function updateProjections() {
-  if (!document.getElementById('proj-toggle').checked) return;
+function updateProjections(lid) {
+  const togEl = document.getElementById(`ptog-${lid}`);
+  if (!togEl || !togEl.checked) return;
+  const lineup = getLineup(lid);
+  if (!lineup) return;
 
-  const filled = roster.filter(r => r !== null);
-  const systems = { s: 'Steamer', a: 'ATC', b: 'BatX' };
+  const filled = lineup.roster.filter(r => r !== null);
   const totals = { s: 0, a: 0, b: 0 };
   const counts = { s: 0, a: 0, b: 0 };
-  const missing = { s: [], a: [], b: [] };
+  const missing = { s: [] };
 
   for (const p of filled) {
     const pid = String(p.PlayerId);
@@ -6027,18 +6211,16 @@ function updateProjections() {
       if (proj && proj[sys] != null) {
         totals[sys] += proj[sys];
         counts[sys]++;
-      } else {
-        missing[sys].push(p.Name);
       }
     }
+    if (!proj || proj.s == null) missing.s.push(p.Name);
   }
 
-  // Max for bar scaling — use 172 as reference
   const barMax = 172;
-
   for (const sys of ['s','a','b']) {
-    const valEl = document.getElementById(`proj-val-${sys}`);
-    const barEl = document.getElementById(`proj-bar-${sys}`);
+    const valEl = document.getElementById(`pval-${sys}-${lid}`);
+    const barEl = document.getElementById(`pbar-${sys}-${lid}`);
+    if (!valEl || !barEl) continue;
     if (counts[sys] === 0) {
       valEl.textContent = '—';
       valEl.className = 'proj-val na';
@@ -6048,17 +6230,14 @@ function updateProjections() {
       valEl.textContent = total;
       valEl.className = `proj-val${total > barMax ? ' over' : ''}`;
       barEl.style.width = `${Math.min((total / barMax) * 100, 100)}%`;
-      barEl.style.background = total > barMax ? 'var(--red)' : total > barMax * 0.85 ? 'var(--gold)' : 'var(--gold)';
     }
   }
 
-  // Missing notice — use the system with the most coverage (Steamer) as reference
-  const missingEl = document.getElementById('proj-missing');
-  const missingNames = [...new Set(missing.s)];
-  if (missingNames.length > 0 && filled.length > 0) {
-    missingEl.textContent = `⚠ No Steamer projection for: ${missingNames.join(', ')}`;
-  } else {
-    missingEl.textContent = '';
+  const missEl = document.getElementById(`pmiss-${lid}`);
+  if (missEl) {
+    missEl.textContent = missing.s.length > 0 && filled.length > 0
+      ? `⚠ No Steamer projection for: ${missing.s.join(', ')}`
+      : '';
   }
 }
 
