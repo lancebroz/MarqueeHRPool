@@ -889,7 +889,154 @@
     text-align: right;
   }
 
+  /* ─── LEADERBOARD ENHANCEMENTS ─── */
+  .lb-row-clickable { cursor: pointer; }
+  .lb-row-clickable:hover { background: var(--surface2); }
+
+  .lb-chevron {
+    font-size: 18px;
+    color: var(--text-dim);
+    margin-left: 4px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .lb-row-clickable:hover .lb-chevron { color: var(--text-muted); }
+
+  /* ─── ROSTER PANEL UPDATES ─── */
+  .roster-team-hr {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    margin-left: 8px;
+    font-weight: 500;
+  }
+
+  .roster-lineup-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 6px 0 3px;
+  }
+
+  /* ─── TEAM DETAIL MODAL ─── */
+  .team-detail-modal-inner {
+    max-width: 480px;
+  }
+
+  .td-lineup {
+    padding: 0 24px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .td-lineup:last-child { border-bottom: none; }
+
+  .td-lineup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0 8px;
+  }
+
+  .td-lineup-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .td-lineup-total {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gold);
+  }
+
+  .td-player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .td-player-row:last-child { border-bottom: none; }
+
+  .td-player-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .td-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 50%;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+
+  .td-player-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .td-player-hr {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .td-player-hr.has-data { color: var(--gold); font-weight: 500; }
+
   /* ─── TRACKER PAGE ─── */
+
+  /* League toggle */
+  .league-toggle-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px;
+    width: fit-content;
+  }
+
+  .league-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 5px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .league-btn:hover { color: var(--text); background: var(--surface2); }
+
+  .league-btn.active {
+    background: var(--red);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(232,54,74,0.3);
+  }
+
   .coming-soon-banner {
     background: linear-gradient(135deg, rgba(232,54,74,0.15), rgba(240,192,64,0.1));
     border: 1px solid rgba(240,192,64,0.3);
@@ -1097,8 +1244,8 @@
       <p>Season Draft &amp; Live Tracker</p>
     </div>
     <nav>
-      <button class="tab-btn active" onclick="switchTab('builder')">⚡ Lineup Builder</button>
-      <button class="tab-btn" onclick="switchTab('tracker')">📊 Leaderboard</button>
+      <button class="tab-btn" onclick="switchTab('builder', this)">⚡ Lineup Builder</button>
+      <button class="tab-btn active" onclick="switchTab('tracker', this)">📊 Leaderboard</button>
     </nav>
   </div>
 </header>
@@ -1106,7 +1253,7 @@
 <main>
 
   <!-- ═══ BUILDER PAGE ═══ -->
-  <div id="page-builder" class="page active">
+  <div id="page-builder" class="page">
     <div class="builder-top-bar">
       <button class="see-all-btn" onclick="openModal()">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -1127,25 +1274,39 @@
   </div>
 
   <!-- ═══ TRACKER PAGE ═══ -->
-  <div id="page-tracker" class="page">
+  <div id="page-tracker" class="page active">
+
+    <!-- Coming Soon Banner -->
     <div class="coming-soon-banner">
       <span class="badge">Coming Soon</span>
       <p>The <strong>2026 Live Tracker</strong> will activate once the MLB season begins. Rosters are pre-loaded — HR totals will update in real time via MLB Statcast.</p>
     </div>
+
+    <!-- League Toggle -->
+    <div class="league-toggle-bar">
+      <button class="league-btn active" id="league-btn-marquee" onclick="switchLeague('marquee')">
+        🏆 Marquee HR Pool
+      </button>
+      <button class="league-btn" id="league-btn-highrollers" onclick="switchLeague('highrollers')">
+        💰 High Rollers
+      </button>
+    </div>
+
+    <!-- Leaderboard + Rosters -->
     <div class="tracker-layout">
       <div class="leaderboard-card">
         <div class="card-header">
-          <div class="section-label">Live Standings</div>
+          <div class="section-label" id="lb-league-label">Marquee HR Pool</div>
           <h2>Leaderboard</h2>
         </div>
         <div id="leaderboard-rows">
-          <!-- Populated by JS with placeholder data -->
+          <!-- Populated by JS -->
         </div>
       </div>
       <div class="rosters-card">
         <div class="card-header">
           <div class="section-label">All Rosters</div>
-          <h2>Team Rosters</h2>
+          <h2 id="roster-league-title">Marquee HR Pool</h2>
         </div>
         <div id="roster-list">
           <!-- Populated by JS -->
@@ -1153,6 +1314,31 @@
       </div>
     </div>
   </div>
+
+<!-- ═══ TEAM DETAIL MODAL ═══ -->
+<div class="modal-overlay" id="team-detail-modal" onclick="handleTeamDetailOverlayClick(event)">
+  <div class="modal team-detail-modal-inner">
+    <div class="modal-header">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Team Roster</div>
+        <div class="modal-title" id="team-detail-name"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="text-align:right">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted)">2026 Total</div>
+          <div style="font-family:'Black Han Sans',sans-serif;font-size:28px;color:var(--gold)" id="team-detail-total">—</div>
+        </div>
+        <button class="modal-close" onclick="closeTeamDetail()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="players-table-wrap" id="team-detail-body" style="padding:0 0 8px">
+    </div>
+  </div>
+</div>
 
 </main>
 
@@ -6148,38 +6334,219 @@ function addFromModal(name) {
 }
 
 // ═══════════════════════════════════════════════
-//  TRACKER PLACEHOLDER
+//  LEAGUE DATA & TRACKER
 // ═══════════════════════════════════════════════
 
+// Placeholder rosters — will be replaced with real data
+const LEAGUE_DATA = {
+  marquee: {
+    label: 'Marquee HR Pool',
+    teams: []  // TBD — awaiting rosters
+  },
+  highrollers: {
+    label: 'High Rollers',
+    teams: [
+      {
+        name: 'Lance',
+        lineups: [
+          { label: 'Lineup 1', players: ['Nick Kurtz','Kyle Tucker','Ronald Acuña Jr.','Bobby Witt Jr.','Austin Riley','Daulton Varsho','Gunnar Henderson','Jake Burger'] },
+          { label: 'Lineup 2', players: ['Nick Kurtz','Julio Rodríguez','Pete Alonso','Ronald Acuña Jr.','Dominic Canzone','Austin Riley','Ryan Jeffers','Ezequiel Tovar'] }
+        ]
+      },
+      {
+        name: 'Steger',
+        lineups: [
+          { label: 'Lineup 1', players: ['Brent Rooker','Vladimir Guerrero Jr.','Bobby Witt Jr.','Ronald Acuña Jr.','Austin Riley','Jake Burger','Kyle Tucker','Corey Seager'] },
+          { label: 'Lineup 2', players: ['Pete Alonso','Vladimir Guerrero Jr.','Ronald Acuña Jr.','Colson Montgomery','Elly De La Cruz','Mookie Betts','Gunnar Henderson','Ezequiel Tovar'] }
+        ]
+      },
+      {
+        name: 'Cohen',
+        lineups: [
+          { label: 'Lineup 1', players: ['Pete Alonso','José Ramírez','Wyatt Langford','Kyle Tucker','Ronald Acuña Jr.','Jackson Merrill','Jonathan Aranda','Tyler O'Neill'] },
+          { label: 'Lineup 2', players: ['Shohei Ohtani','Brent Rooker','Jake Burger','Matt McLain','Luis Robert Jr.','Austin Riley','Andrew Vaughn','Jorge Soler'] }
+        ]
+      }
+    ]
+  }
+};
+
+// ─── LIVE 2026 HR DATA ───
+// Keyed by player name, populated by fetchLiveHR()
+let liveHR = {};
+let liveHRLoaded = false;
+let liveHRLastFetch = 0;
+const LIVE_HR_TTL = 5 * 60 * 1000; // refresh every 5 min
+
+async function fetchLiveHR() {
+  const now = Date.now();
+  if (liveHRLoaded && (now - liveHRLastFetch) < LIVE_HR_TTL) return;
+  try {
+    const url = 'https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=2026&limit=1000&offset=0';
+    const res = await fetch(url);
+    const data = await res.json();
+    const stats = data?.stats?.[0]?.splits || [];
+    const newHR = {};
+    for (const s of stats) {
+      const name = s.player?.fullName;
+      const hr = s.stat?.homeRuns;
+      if (name && hr != null) newHR[name] = hr;
+    }
+    if (Object.keys(newHR).length > 0) {
+      liveHR = newHR;
+      liveHRLoaded = true;
+      liveHRLastFetch = now;
+      renderLeague(activeLeague);
+    }
+  } catch(e) {
+    console.warn('MLB API fetch failed:', e);
+  }
+}
+
+function getHR(playerName) {
+  if (liveHR[playerName] != null) return liveHR[playerName];
+  // Fallback: fuzzy match on last name
+  const last = playerName.split(' ').pop().toLowerCase();
+  for (const [k,v] of Object.entries(liveHR)) {
+    if (k.toLowerCase().includes(last)) return v;
+  }
+  return null;
+}
+
+function getTeamTotalHR(team) {
+  let total = 0;
+  let hasAny = false;
+  for (const lineup of (team.lineups || [])) {
+    for (const p of lineup.players) {
+      const hr = getHR(p);
+      if (hr != null) { total += hr; hasAny = true; }
+    }
+  }
+  return hasAny ? total : null;
+}
+
+let activeLeague = 'marquee';
+
 function buildTrackerPlaceholder() {
-  const teams = [
-    { name: "Team Alpha", players: ["Cal Raleigh","Kyle Schwarber","Aaron Judge","Junior Caminero","Pete Alonso","Byron Buxton","Michael Busch","Trent Grisham"] },
-    { name: "Team Bravo", players: ["Shohei Ohtani","Juan Soto","Jo Adell","Nick Kurtz","Riley Greene","Vinnie Pasquantino","Francisco Lindor","Jazz Chisholm Jr."] },
-    { name: "Team Charlie", players: ["José Ramírez","Brent Rooker","Christian Yelich","Manny Machado","Fernando Tatis Jr.","Bobby Witt Jr.","Jackson Chourio","Lawrence Butler"] },
-    { name: "Team Delta", players: ["Julio Rodríguez","Pete Crow-Armstrong","Corbin Carroll","Brandon Lowe","Ketel Marte","Tyler Soderstrom","Elly De La Cruz","Heliot Ramos"] },
-  ];
+  fetchLiveHR();
+  renderLeague('marquee');
+  // Auto-refresh every 5 min
+  setInterval(() => {
+    fetchLiveHR();
+  }, 5 * 60 * 1000);
+}
 
-  const lbEl = document.getElementById('leaderboard-rows');
-  const rankColors = ['gold','silver','bronze','rest','rest','rest','rest','rest'];
-  lbEl.innerHTML = teams.map((t, i) => `
-    <div class="lb-row">
-      <span class="lb-rank ${rankColors[i]}">${i+1}</span>
+function switchLeague(league) {
+  activeLeague = league;
+  document.querySelectorAll('.league-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`league-btn-${league}`).classList.add('active');
+  const label = LEAGUE_DATA[league].label;
+  document.getElementById('lb-league-label').textContent = label;
+  document.getElementById('roster-league-title').textContent = label;
+  renderLeague(league);
+}
+
+function renderLeague(league) {
+  const data = LEAGUE_DATA[league];
+  if (!data) return;
+  const teams = data.teams;
+
+  if (!teams || teams.length === 0) {
+    document.getElementById('leaderboard-rows').innerHTML = `
+      <div style="padding:24px;text-align:center;color:var(--text-dim);font-family:'Barlow',sans-serif;font-size:13px">
+        Rosters coming soon
+      </div>`;
+    document.getElementById('roster-list').innerHTML = '';
+    return;
+  }
+
+  // Compute totals
+  const teamsWithTotals = teams.map(t => ({
+    ...t,
+    total: getTeamTotalHR(t)
+  }));
+
+  const ranked = [...teamsWithTotals].sort((a, b) => {
+    if (a.total == null && b.total == null) return 0;
+    if (a.total == null) return 1;
+    if (b.total == null) return -1;
+    return b.total - a.total;
+  });
+
+  const maxHR = Math.max(...ranked.map(t => t.total || 0), 1);
+  const rankColors = ['gold','silver','bronze','rest','rest','rest','rest','rest','rest','rest'];
+
+  document.getElementById('leaderboard-rows').innerHTML = ranked.map((t, i) => `
+    <div class="lb-row lb-row-clickable" onclick="openTeamDetail('${league}','${t.name}')">
+      <span class="lb-rank ${rankColors[i]||'rest'}">${i+1}</span>
       <span class="lb-name">${t.name}</span>
-      <span class="lb-hr">— HR</span>
-      <div class="lb-progress"><div class="lb-bar" style="width:${60-i*10}%"></div></div>
+      <span class="lb-hr">${t.total != null ? t.total + ' HR' : (liveHRLoaded ? '0 HR' : '— HR')}</span>
+      <div class="lb-progress"><div class="lb-bar" style="width:${maxHR > 0 ? Math.round(((t.total||0)/maxHR)*100) : 0}%"></div></div>
+      <span class="lb-chevron">›</span>
     </div>
   `).join('');
 
-  const rosterEl = document.getElementById('roster-list');
-  rosterEl.innerHTML = teams.map(t => `
-    <div class="roster-team">
-      <div class="roster-team-name">${t.name}</div>
-      ${t.players.map(name => `<div class="roster-player">
-        <span class="roster-player-name">${name}</span>
-        <span class="roster-player-hr">— HR</span>
-      </div>`).join('')}
+  // Right panel: all rosters
+  document.getElementById('roster-list').innerHTML = teamsWithTotals.map(t => `
+    <div class="roster-team" id="roster-${league}-${t.name}">
+      <div class="roster-team-name">${t.name}${t.total != null ? `<span class="roster-team-hr">${t.total} HR</span>` : ''}</div>
+      ${(t.lineups || []).map(lu => `
+        <div class="roster-lineup-label">${lu.label}</div>
+        ${lu.players.map(name => {
+          const hr = getHR(name);
+          return `<div class="roster-player">
+            <span class="roster-player-name">${name}</span>
+            <span class="roster-player-hr">${hr != null ? hr + ' HR' : '—'}</span>
+          </div>`;
+        }).join('')}
+      `).join('')}
     </div>
   `).join('');
+}
+
+// ─── TEAM DETAIL MODAL ───
+function openTeamDetail(league, teamName) {
+  const data = LEAGUE_DATA[league];
+  const team = data?.teams?.find(t => t.name === teamName);
+  if (!team) return;
+
+  const total = getTeamTotalHR(team);
+
+  const lineupHTML = (team.lineups || []).map(lu => {
+    const luTotal = lu.players.reduce((s, p) => {
+      const hr = getHR(p); return s + (hr || 0);
+    }, 0);
+    const hasData = lu.players.some(p => getHR(p) != null);
+    return `
+      <div class="td-lineup">
+        <div class="td-lineup-header">
+          <span class="td-lineup-label">${lu.label}</span>
+          <span class="td-lineup-total">${hasData ? luTotal + ' HR' : '— HR'}</span>
+        </div>
+        ${lu.players.map(name => {
+          const hr = getHR(name);
+          const player = PLAYER_DATA.find(p => p.Name === name);
+          const logoUrl = player ? getLogoUrl(player.Team) : null;
+          return `
+            <div class="td-player-row">
+              <div class="td-player-left">
+                ${logoUrl ? `<img class="td-logo" src="${logoUrl}" onerror="this.style.display='none'" alt="">` : ''}
+                <span class="td-player-name">${name}</span>
+              </div>
+              <span class="td-player-hr ${hr != null ? 'has-data' : ''}">${hr != null ? hr : '—'}</span>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+
+  document.getElementById('team-detail-name').textContent = teamName;
+  document.getElementById('team-detail-total').textContent = total != null ? total + ' HR' : (liveHRLoaded ? '0 HR' : '— HR');
+  document.getElementById('team-detail-body').innerHTML = lineupHTML;
+  document.getElementById('team-detail-modal').classList.add('open');
+}
+
+function closeTeamDetail() {
+  document.getElementById('team-detail-modal').classList.remove('open');
 }
 
 // ═══════════════════════════════════════════════
@@ -6239,6 +6606,21 @@ function updateProjections(lid) {
       ? `⚠ No Steamer projection for: ${missing.s.join(', ')}`
       : '';
   }
+}
+
+function handleTeamDetailOverlayClick(e) {
+  if (e.target === document.getElementById('team-detail-modal')) closeTeamDetail();
+}
+
+// ═══════════════════════════════════════════════
+//  TAB NAVIGATION
+// ═══════════════════════════════════════════════
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${tab}`).classList.add('active');
+  if (btn) btn.classList.add('active');
 }
 
 // ═══════════════════════════════════════════════
