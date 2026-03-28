@@ -411,19 +411,19 @@ const LEAGUES = {
     extra: {
     label: "Extra Lineups",
     teams: [
-      { name: "Extra 1", players: ["Shohei Ohtani", "Pete Alonso", "Ronald Acuña Jr.", "Austin Riley", "Luis Robert Jr.", "Ezequiel Tovar", "Tyler O’Neill", "Ryan Jeffers"] },
-      { name: "Extra 2", players: ["Pete Alonso", "Vladimir Guerrero Jr.", "Ronald Acuña Jr.", "Colson Montgomery", "Elly De La Cruz", "Mookie Betts", "Gunnar Henderson", "Ezequiel Tovar"] },
-      { name: "Extra 3", players: ["Aaron Judge", "Ronald Acuña Jr.", "Vladimir Guerrero Jr.", "Austin Riley", "Royce Lewis", "Ezequiel Tovar", "Colson Montgomery", "Luis Robert Jr."] },
-      { name: "Extra 4", players: ["Shohei Ohtani", "Pete Alonso", "Ronald Acuña Jr.", "Austin Riley", "Ezequiel Tovar", "Ryan Jeffers", "Cam Smith", "Jonathan Aranda"] },
-      { name: "Extra 5", players: ["Julio Rodríguez", "Vladimir Guerrero Jr.", "Ronald Acuña Jr.", "Elly De La Cruz", "Colson Montgomery", "Mookie Betts", "Austin Riley", "Gunnar Henderson"] },
-      { name: "Extra 6", players: ["Shohei Ohtani", "Nick Kurtz", "Vladimir Guerrero Jr.", "Ronald Acuña Jr.", "Ezequiel Tovar", "Ryan Jeffers", "Cam Smith", "Masyn Winn"] },
-      { name: "Extra 7", players: ["Shohei Ohtani", "Nick Kurtz", "Ronald Acuña Jr.", "Gunnar Henderson", "Jonathan Aranda", "Ezequiel Tovar", "Cam Smith", "Dominic Canzone"] },
-      { name: "Extra 8", players: ["Nick Kurtz", "Julio Rodríguez", "Pete Alonso", "Ronald Acuña Jr.", "Dominic Canzone", "Austin Riley", "Ryan Jeffers", "Ezequiel Tovar"] },
-      { name: "Extra 9", players: ["Aaron Judge", "Juan Soto", "Ronald Acuña Jr.", "Austin Riley", "Ezequiel Tovar", "Tyler O’Neill", "Adley Rutschman", "Jorge Soler"] },
-      { name: "Extra 10", players: ["Junior Caminero", "Ronald Acuña Jr.", "Vladimir Guerrero Jr.", "Austin Riley", "Kyle Tucker", "Ezequiel Tovar", "Colson Montgomery", "Luis Robert Jr."] },
-      { name: "Extra 11", players: ["Vladimir Guerrero Jr.", "Ronald Acuña Jr.", "Mookie Betts", "Colson Montgomery", "Elly De La Cruz", "Oneil Cruz", "Kyle Tucker", "Wyatt Langford"] },
-      { name: "Extra 12", players: ["Junior Caminero", "Juan Soto", "Ronald Acuña Jr.", "Mookie Betts", "Ezequiel Tovar", "Matt McLain", "Dylan Crews", "Tyler O’Neill"] },
-      { name: "Extra 13", players: ["Pete Alonso", "Juan Soto", "Jonathan Aranda", "Ezequiel Tovar", "Austin Riley", "Colson Montgomery", "Cam Smith", "Ronald Acuña Jr."] }
+      { name: "Extra Alpha", players: ["Shohei Ohtani", "Pete Alonso", "Ronald Acuña Jr.", "Austin Riley", "Luis Robert Jr.", "Ezequiel Tovar", "Tyler O’Neill", "Ryan Jeffers"] },
+      { name: "Extra Beta", players: ["Pete Alonso", "Vladimir Guerrero Jr.", "Ronald Acuña Jr.", "Colson Montgomery", "Elly De La Cruz", "Mookie Betts", "Gunnar Henderson", "Ezequiel Tovar"] },
+      { name: "Extra Gamma", players: ["Aaron Judge", "Ronald Acuña Jr.", "Vladimir Guerrero Jr.", "Austin Riley", "Royce Lewis", "Ezequiel Tovar", "Colson Montgomery", "Luis Robert Jr."] },
+      { name: "Extra Delta", players: ["Shohei Ohtani", "Pete Alonso", "Ronald Acuña Jr.", "Austin Riley", "Ezequiel Tovar", "Ryan Jeffers", "Cam Smith", "Jonathan Aranda"] },
+      { name: "Extra Epsilon", players: ["Julio Rodríguez", "Vladimir Guerrero Jr.", "Ronald Acuña Jr.", "Elly De La Cruz", "Colson Montgomery", "Mookie Betts", "Austin Riley", "Gunnar Henderson"] },
+      { name: "Extra Zeta", players: ["Shohei Ohtani", "Nick Kurtz", "Vladimir Guerrero Jr.", "Ronald Acuña Jr.", "Ezequiel Tovar", "Ryan Jeffers", "Cam Smith", "Masyn Winn"] },
+      { name: "Extra Eta", players: ["Shohei Ohtani", "Nick Kurtz", "Ronald Acuña Jr.", "Gunnar Henderson", "Jonathan Aranda", "Ezequiel Tovar", "Cam Smith", "Dominic Canzone"] },
+      { name: "Extra Theta", players: ["Nick Kurtz", "Julio Rodríguez", "Pete Alonso", "Ronald Acuña Jr.", "Dominic Canzone", "Austin Riley", "Ryan Jeffers", "Ezequiel Tovar"] },
+      { name: "Extra Iota", players: ["Aaron Judge", "Juan Soto", "Ronald Acuña Jr.", "Austin Riley", "Ezequiel Tovar", "Tyler O’Neill", "Adley Rutschman", "Jorge Soler"] },
+      { name: "Extra Kappa", players: ["Junior Caminero", "Ronald Acuña Jr.", "Vladimir Guerrero Jr.", "Austin Riley", "Kyle Tucker", "Ezequiel Tovar", "Colson Montgomery", "Luis Robert Jr."] },
+      { name: "Extra Lambda", players: ["Vladimir Guerrero Jr.", "Ronald Acuña Jr.", "Mookie Betts", "Colson Montgomery", "Elly De La Cruz", "Oneil Cruz", "Kyle Tucker", "Wyatt Langford"] },
+      { name: "Extra Mu", players: ["Junior Caminero", "Juan Soto", "Ronald Acuña Jr.", "Mookie Betts", "Ezequiel Tovar", "Matt McLain", "Dylan Crews", "Tyler O’Neill"] },
+      { name: "Extra Nu", players: ["Pete Alonso", "Juan Soto", "Jonathan Aranda", "Ezequiel Tovar", "Austin Riley", "Colson Montgomery", "Cam Smith", "Ronald Acuña Jr."] }
     ]
   }
 };
@@ -528,15 +528,23 @@ function renderLeague(key) {
       });
 
     const maxHR = Math.max(...ranked.map(t => t.total || 0), 1);
-    const rankClass = ['gold-row','silver-row','bronze-row'];
+
+    // Tie-aware ranking
+    const trueRanks = ranked.map((t, i) => {
+      if (t.total == null) return ranked.length;
+      return ranked.findIndex(r => r.total === t.total) + 1;
+    });
 
     inner = ranked.map((t, i) => {
-      const cls = rankClass[i] || 'rest-row';
+      const rank = trueRanks[i];
+      const isTied = t.total != null && ranked.filter(r => r.total === t.total).length > 1;
+      const rankLabel = t.total == null ? '\u2014' : (isTied ? 'T' + rank : '' + rank);
+      const cls = rank === 1 ? 'gold-row' : rank === 2 ? 'silver-row' : rank === 3 ? 'bronze-row' : 'rest-row';
       const pct = Math.round(((t.total || 0) / maxHR) * 100);
-      const hrText = t.total != null ? t.total : (dataLoaded ? '0' : '—');
+      const hrText = t.total != null ? t.total : (dataLoaded ? '0' : '\u2014');
       const noData = t.total == null;
       return `<div class="lb-row ${cls}" data-league="${key}" data-team="${esc(t.name)}">
-        <div class="rank-num">${i + 1}</div>
+        <div class="rank-num" style="${isTied ? 'font-size:15px' : ''}">${rankLabel}</div>
         <div class="row-info">
           <div class="row-name">${esc(t.name)}</div>
           ${t.owner ? `<div class="row-owner">${esc(t.owner)}</div>` : ''}
