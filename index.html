@@ -445,7 +445,7 @@ const LEAGUES = {
       { name: "Marco Moy", players: ["Gunnar Henderson", "Ben Rice", "Isaac Paredes", "Vladimir Guerrero Jr.", "Matt Olson", "José Ramírez", "Luis Robert Jr.", "Adley Rutschman"] },
       { name: "Alex Cohen", players: ["Aaron Judge", "Kyle Tucker", "Ronald Acuña Jr.", "Gunnar Henderson", "Austin Riley", "Jake Burger", "Marcus Semien", "Nolan Arenado"] },
       { name: "Vince Lodl", players: ["Aaron Judge", "Alex Bregman", "Jonathan Aranda", "Iván Herrera", "Colson Montgomery", "Ronald Acuña Jr.", "Daylen Lile", "Gunnar Henderson"] }
-      { name: "Cliff Floyd", players: ["Austin Riley", "Kyle Schwarber", "Ronald Acu\u00f1a Jr.", "Jackson Merrill", "Colson Montgomery", "Vladimir Guerrero Jr.", "Gabriel Moreno", "Cam Smith"] },
+      { name: "Cliff Floyd", players: ["Austin Riley", "Kyle Schwarber", "Ronald Acuña Jr.", "Jackson Merrill", "Colson Montgomery", "Vladimir Guerrero Jr.", "Gabriel Moreno", "Cam Smith"] },
     ]
   },
   highrollers: {
@@ -602,10 +602,10 @@ function renderLeague(key) {
     inner = ranked.map((t, i) => {
       const rank = trueRanks[i];
       const isTied = t.total != null && ranked.filter(r => r.total === t.total).length > 1;
-      const rankLabel = t.total == null ? '\u2014' : (isTied ? 'T' + rank : '' + rank);
+      const rankLabel = t.total == null ? '—' : (isTied ? 'T' + rank : '' + rank);
       const cls = rank === 1 ? 'gold-row' : rank === 2 ? 'silver-row' : rank === 3 ? 'bronze-row' : 'rest-row';
       const pct = Math.round(((t.total || 0) / maxHR) * 100);
-      const hrText = t.total != null ? t.total : (dataLoaded ? '0' : '\u2014');
+      const hrText = t.total != null ? t.total : (dataLoaded ? '0' : '—');
       const noData = t.total == null;
       return `<div class="lb-row ${cls}" data-league="${key}" data-team="${esc(t.name)}">
         <div class="rank-num" style="${isTied ? 'font-size:15px' : ''}">${rankLabel}</div>
