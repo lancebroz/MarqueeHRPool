@@ -420,6 +420,17 @@
   </div>
 </div>
 
+<!-- PASSWORD MODAL -->
+<div class="pw-overlay" id="pw-overlay" style="display:none">
+  <div class="pw-box">
+    <div class="pw-title">🔒 Protected</div>
+    <div class="pw-sub" id="pw-sub">Enter password to view</div>
+    <input class="pw-input" id="pw-input" type="password" placeholder="Password" maxlength="30">
+    <button class="pw-btn" id="pw-submit">Unlock</button>
+    <div class="pw-error" id="pw-error"></div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
 //  LEAGUE DATA
@@ -776,15 +787,4 @@ function timeAgo(ts) {
 })();
 </script>
 
-<!-- PASSWORD MODAL -->
-<div class="pw-overlay" id="pw-overlay" style="display:none">
-  <div class="pw-box">
-    <div class="pw-title">🔒 Protected</div>
-    <div class="pw-sub" id="pw-sub">Enter password to view</div>
-    <input class="pw-input" id="pw-input" type="password" placeholder="Password" maxlength="30">
-    <button class="pw-btn" id="pw-submit">Unlock</button>
-    <div class="pw-error" id="pw-error"></div>
-  </div>
-</div>
 </body>
-</html>
