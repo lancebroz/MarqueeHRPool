@@ -516,10 +516,13 @@ async function fetchHR(force) {
     const json = await r.json();
     const splits = json?.stats?.[0]?.splits || [];
     const fresh = {};
+    // SUM HRs across all entries per player (handles mid-season trades)
     for (const s of splits) {
       const n = s.player?.fullName;
       const h = s.stat?.homeRuns;
-      if (n && h != null) fresh[n] = h;
+      if (n && h != null) {
+        fresh[n] = (fresh[n] || 0) + h;
+      }
     }
     if (Object.keys(fresh).length === 0) throw new Error('empty');
     hrData = fresh;
