@@ -512,16 +512,15 @@ async function fetchHR(force) {
   setStatus('loading', 'Loading…');
   try {
     const fresh = {};
-    const BASE = 'https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=2026&limit=1000';
+    const BASE = 'https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=2026&playerPool=ALL&limit=1000';
     let offset = 0;
-    let total = null;
     while (true) {
       const r = await fetch(BASE + '&offset=' + offset);
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const json = await r.json();
       const block = json?.stats?.[0] || {};
       const splits = block.splits || [];
-      if (total === null) total = block.totalSplits || 9999;
+      const total = block.totalSplits || 0;
       for (const s of splits) {
         const n = s.player?.fullName;
         const h = s.stat?.homeRuns;
