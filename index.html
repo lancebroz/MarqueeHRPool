@@ -526,6 +526,9 @@ async function fetchHR(force) {
       }
     }
     if (Object.keys(fresh).length === 0) throw new Error('empty');
+    // Debug: log exact API name for Canzone and Harris
+    const debugNames = Object.keys(fresh).filter(n => n.toLowerCase().includes('canzone') || n.toLowerCase().includes('harris'));
+    console.log('API names found:', debugNames, debugNames.map(n => fresh[n] + ' HR'));
     hrData = fresh;
     dataLoaded = true;
     lastFetch = now;
@@ -549,6 +552,15 @@ function setStatus(cls, txt) {
 // ═══════════════════════════════════════════════
 function getHR(name) {
   if (hrData[name] != null) return hrData[name];
+
+  // Known API name mismatches: roster name -> API name
+  const ALIASES = {
+    'Dominic Canzone': 'Dom Canzone',
+    'Michael Harris II': 'Michael Harris',
+    'Ronald Acuña Jr.': 'Ronald Acuna Jr.',
+  };
+  if (ALIASES[name] && hrData[ALIASES[name]] != null) return hrData[ALIASES[name]];
+
   // Normalize: strip suffixes like Jr., Sr., II, III for fuzzy matching
   const suffixes = ['jr.', 'sr.', 'ii', 'iii', 'iv'];
   function baseName(n) {
@@ -557,7 +569,7 @@ function getHR(name) {
     return filtered.join(' ');
   }
   const needle = baseName(name);
-  // Exact base name match
+  // Exact base name match after normalization
   for (const [k, v] of Object.entries(hrData)) {
     if (baseName(k) === needle) return v;
   }
