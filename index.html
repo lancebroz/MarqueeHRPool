@@ -458,6 +458,7 @@ const LEAGUES = {
       { name: "Vince Lodl", players: ["Aaron Judge", "Alex Bregman", "Jonathan Aranda", "Iván Herrera", "Colson Montgomery", "Ronald Acuña Jr.", "Daylen Lile", "Gunnar Henderson"] },
       { name: "Cliff Floyd", players: ["Austin Riley", "Kyle Schwarber", "Ronald Acuña Jr.", "Jackson Merrill", "Colson Montgomery", "Vladimir Guerrero Jr.", "Gabriel Moreno", "Cam Smith"] },
       { name: "Andy Martinez", players: ["Shohei Ohtani", "Kyle Tucker", "Bobby Witt Jr.", "Vladimir Guerrero Jr.", "Jorge Soler", "Xander Bogaerts", "Max Muncy", "Gunnar Henderson"] },
+      { name: "Elise Menaker", players: ["Kyle Tucker", "Bobby Witt Jr.", "Pete Crow-Armstrong", "Alex Bregman", "Mookie Betts", "Fernando Tatis Jr.", "Brendan Donovan", "Vladimir Guerrero Jr."] },
     ]
   },
   highrollers: {
@@ -510,25 +511,27 @@ async function fetchHR(force) {
 
   setStatus('loading', 'Loading…');
   try {
-    const r = await fetch(
-      'https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=2026&limit=2000'
-    );
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const json = await r.json();
-    const splits = json?.stats?.[0]?.splits || [];
     const fresh = {};
-    // SUM HRs across all entries per player (handles mid-season trades)
-    for (const s of splits) {
-      const n = s.player?.fullName;
-      const h = s.stat?.homeRuns;
-      if (n && h != null) {
-        fresh[n] = (fresh[n] || 0) + h;
+    const BASE = 'https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=2026&limit=1000';
+    let offset = 0;
+    let total = null;
+    while (true) {
+      const r = await fetch(BASE + '&offset=' + offset);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const json = await r.json();
+      const block = json?.stats?.[0] || {};
+      const splits = block.splits || [];
+      if (total === null) total = block.totalSplits || 9999;
+      for (const s of splits) {
+        const n = s.player?.fullName;
+        const h = s.stat?.homeRuns;
+        if (n && h != null) fresh[n] = (fresh[n] || 0) + h;
       }
+      offset += splits.length;
+      if (splits.length === 0 || offset >= total) break;
     }
+
     if (Object.keys(fresh).length === 0) throw new Error('empty');
-    // Debug: log exact API name for Canzone and Harris
-    const debugNames = Object.keys(fresh).filter(n => n.toLowerCase().includes('canzone') || n.toLowerCase().includes('harris'));
-    console.log('API names found:', debugNames, debugNames.map(n => fresh[n] + ' HR'));
     hrData = fresh;
     dataLoaded = true;
     lastFetch = now;
@@ -552,14 +555,6 @@ function setStatus(cls, txt) {
 // ═══════════════════════════════════════════════
 function getHR(name) {
   if (hrData[name] != null) return hrData[name];
-
-  // Known API name mismatches: roster name -> API name
-  const ALIASES = {
-    'Dominic Canzone': 'Dom Canzone',
-    'Michael Harris II': 'Michael Harris',
-    'Ronald Acuña Jr.': 'Ronald Acuna Jr.',
-  };
-  if (ALIASES[name] && hrData[ALIASES[name]] != null) return hrData[ALIASES[name]];
 
   // Normalize: strip suffixes like Jr., Sr., II, III for fuzzy matching
   const suffixes = ['jr.', 'sr.', 'ii', 'iii', 'iv'];
