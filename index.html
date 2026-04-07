@@ -512,6 +512,8 @@ async function fetchHR(force) {
   setStatus('loading', 'Loading…');
   try {
     const fresh = {};
+    // Track per-team entries for players with duplicate names
+    const byNameAndTeam = {};
     const BASE = 'https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=2026&playerPool=ALL&limit=1000';
     let offset = 0;
     while (true) {
@@ -524,10 +526,50 @@ async function fetchHR(force) {
       for (const s of splits) {
         const n = s.player?.fullName;
         const h = s.stat?.homeRuns;
-        if (n && h != null) fresh[n] = (fresh[n] || 0) + h;
+        const team = s.team?.name || '';
+        if (n && h != null) {
+          // Store each name+team combo separately
+          const key = n + '|' + team;
+          byNameAndTeam[key] = { name: n, team, hr: (byNameAndTeam[key]?.hr || 0) + h };
+        }
       }
       offset += splits.length;
       if (splits.length === 0 || offset >= total) break;
+    }
+
+    // Now resolve: for most players, sum all teams (traded players)
+    // Exception: Max Muncy -> use only the Dodgers entry
+    const TEAM_OVERRIDES = {
+      'Max Muncy': 'Los Angeles Dodgers'
+    };
+
+    const playerEntries = {};
+    for (const [key, val] of Object.entries(byNameAndTeam)) {
+      const { name, team, hr } = val;
+      if (!playerEntries[name]) playerEntries[name] = [];
+      playerEntries[name].push({ team, hr });
+    }
+
+    for (const [name, entries] of Object.entries(playerEntries)) {
+      if (TEAM_OVERRIDES[name]) {
+        // Use only the specified team's entry
+        const match = entries.find(e => e.team === TEAM_OVERRIDES[name]);
+        fresh[name] = match ? match.hr : 0;
+      } else {
+        // Sum across all teams (handles mid-season trades)
+        fresh[name] = entries.reduce((sum, e) => sum + e.hr, 0);
+      }
+    }
+
+    // Map straight-apostrophe API names to curly-apostrophe roster names
+    const APOSTROPHE_ALIASES = {
+      "Tyler O'Neill": "Tyler O’Neill",
+    };
+    for (const [apiName, rosterName] of Object.entries(APOSTROPHE_ALIASES)) {
+      if (fresh[apiName] != null) {
+        fresh[rosterName] = (fresh[rosterName] || 0) + fresh[apiName];
+        delete fresh[apiName];
+      }
     }
 
     if (Object.keys(fresh).length === 0) throw new Error('empty');
