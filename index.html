@@ -500,7 +500,8 @@ let dataLoaded = false;
 let lastFetch = 0;
 const CACHE_TTL = 5 * 60 * 1000;
 let activeLeague = 'marquee';
-let openDetail = null;  // { leagueKey, teamName }
+let openDetail = null;
+let monthlyData = { marchApril: {}, may: {} }; // { playerName: hrCount }  // { leagueKey, teamName }
 
 // ═══════════════════════════════════════════════
 //  MLB API
@@ -586,6 +587,63 @@ async function fetchHR(force) {
   }
 }
 
+async function fetchMonthlyHR() {
+  try {
+    const fetchPeriod = async (start, end) => {
+      const fresh = {};
+      const byNameAndTeam = {};
+      const BASE = 'https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=2026&playerPool=ALL&limit=1000&startDate=' + start + '&endDate=' + end;
+      let offset = 0;
+      while (true) {
+        const r = await fetch(BASE + '&offset=' + offset);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const json = await r.json();
+        const block = json?.stats?.[0] || {};
+        const splits = block.splits || [];
+        const total = block.totalSplits || 0;
+        for (const s of splits) {
+          const n = s.player?.fullName;
+          const h = s.stat?.homeRuns;
+          const team = s.team?.name || '';
+          if (n && h != null) {
+            const key = n + '|' + team;
+            byNameAndTeam[key] = { name: n, team, hr: (byNameAndTeam[key]?.hr || 0) + h };
+          }
+        }
+        offset += splits.length;
+        if (splits.length === 0 || offset >= total) break;
+      }
+
+      const TEAM_OVERRIDES = { 'Max Muncy': 'Los Angeles Dodgers' };
+      const playerEntries = {};
+      for (const [key, val] of Object.entries(byNameAndTeam)) {
+        if (!playerEntries[val.name]) playerEntries[val.name] = [];
+        playerEntries[val.name].push(val);
+      }
+      for (const [name, entries] of Object.entries(playerEntries)) {
+        if (TEAM_OVERRIDES[name]) {
+          const match = entries.find(e => e.team === TEAM_OVERRIDES[name]);
+          fresh[name] = match ? match.hr : 0;
+        } else {
+          fresh[name] = entries.reduce((sum, e) => sum + e.hr, 0);
+        }
+      }
+      // Fix Tyler O'Neill apostrophe
+      if (fresh["Tyler O'Neill"] != null) {
+        fresh["Tyler O\u2019Neill"] = (fresh["Tyler O\u2019Neill"] || 0) + fresh["Tyler O'Neill"];
+        delete fresh["Tyler O'Neill"];
+      }
+      return fresh;
+    };
+
+    monthlyData.marchApril = await fetchPeriod('2026-03-27', '2026-04-30');
+    monthlyData.may = await fetchPeriod('2026-05-01', '2026-05-31');
+    renderAll();
+  } catch(e) {
+    console.warn('Monthly fetch error:', e);
+  }
+}
+
 function setStatus(cls, txt) {
   document.getElementById('status-dot').className = 'status-dot ' + cls;
   document.getElementById('status-text').textContent = txt;
@@ -594,6 +652,23 @@ function setStatus(cls, txt) {
 // ═══════════════════════════════════════════════
 //  HR LOOKUP
 // ═══════════════════════════════════════════════
+function getMonthlyHR(name, monthData) {
+  if (monthData[name] != null) return monthData[name];
+  const suffixes = ['jr.', 'sr.', 'ii', 'iii', 'iv'];
+  function baseName(n) {
+    return n.toLowerCase().trim().split(/\s+/).filter(p => !suffixes.includes(p)).join(' ');
+  }
+  const needle = baseName(name);
+  for (const [k, v] of Object.entries(monthData)) {
+    if (baseName(k) === needle) return v;
+  }
+  const lastWord = needle.split(' ').pop();
+  for (const [k, v] of Object.entries(monthData)) {
+    if (baseName(k).split(' ').pop() === lastWord) return v;
+  }
+  return 0;
+}
+
 function getHR(name) {
   if (hrData[name] != null) return hrData[name];
 
@@ -684,7 +759,40 @@ function renderLeague(key) {
   }
 
   const ts = lastFetch ? `Updated ${timeAgo(lastFetch)}` : '';
-  el.innerHTML = `
+
+  // Monthly banner (marquee only)
+  let monthlyBanner = '';
+  if (key === 'marquee' && league.teams.length > 0 && dataLoaded) {
+    const calcMonthlyLeader = (monthData) => {
+      if (!monthData || Object.keys(monthData).length === 0) return null;
+      let bestName = null, bestTotal = -1;
+      for (const t of league.teams) {
+        let total = 0;
+        for (const p of t.players) {
+          total += getMonthlyHR(p, monthData);
+        }
+        if (total > bestTotal) { bestTotal = total; bestName = t.name; }
+      }
+      return bestName ? { name: bestName, total: bestTotal } : null;
+    };
+
+    const marchAprilLeader = calcMonthlyLeader(monthlyData.marchApril);
+    const mayLeader = calcMonthlyLeader(monthlyData.may);
+
+    monthlyBanner = '<div class="monthly-banner">';
+    if (marchAprilLeader) {
+      monthlyBanner += '<div class="monthly-row"><span class="monthly-label">March/April Winner</span><span class="monthly-value">' + esc(marchAprilLeader.name) + '<span class="hr-count">' + marchAprilLeader.total + ' HR</span></span></div>';
+    }
+    if (marchAprilLeader && mayLeader) {
+      monthlyBanner += '<div class="monthly-divider"></div>';
+    }
+    if (mayLeader) {
+      monthlyBanner += '<div class="monthly-row"><span class="monthly-label">Current May Leader</span><span class="monthly-value">' + esc(mayLeader.name) + '<span class="hr-count">' + mayLeader.total + ' HR</span></span></div>';
+    }
+    monthlyBanner += '</div>';
+  }
+
+  el.innerHTML = monthlyBanner + `
     <div class="lb-card">
       <div class="lb-header">
         <div>
@@ -832,10 +940,10 @@ function timeAgo(ts) {
 
   // Initial render + data fetch
   renderAll();
-  fetchHR();
+  fetchHR().then(() => fetchMonthlyHR());
 
   // Auto-refresh every 5 min
-  setInterval(() => fetchHR(), CACHE_TTL);
+  setInterval(() => { fetchHR().then(() => fetchMonthlyHR()); }, CACHE_TTL);
 })();
 </script>
 
