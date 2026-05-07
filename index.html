@@ -588,8 +588,10 @@ async function fetchHR(force) {
 }
 
 async function fetchMonthlyHR() {
+  console.log('fetchMonthlyHR called');
   try {
     const fetchPeriod = async (start, endDate) => {
+      console.log('Fetching monthly:', start, 'to', endDate);
       const fresh = {};
       const byNameAndTeam = {};
       const BASE = 'https://statsapi.mlb.com/api/v1/stats?stats=byDateRange&group=hitting&season=2026&playerPool=ALL&limit=1000&startDate=' + start + '&endDate=' + endDate;
@@ -638,6 +640,8 @@ async function fetchMonthlyHR() {
 
     monthlyData.marchApril = await fetchPeriod('2026-03-25', '2026-04-30');
     monthlyData.may = await fetchPeriod('2026-05-01', '2026-05-31');
+    console.log('MarchApril sample:', Object.keys(monthlyData.marchApril).slice(0, 5), 'count:', Object.keys(monthlyData.marchApril).length);
+    console.log('May sample:', Object.keys(monthlyData.may).slice(0, 5), 'count:', Object.keys(monthlyData.may).length);
     renderAll();
   } catch(e) {
     console.warn('Monthly fetch error:', e);
@@ -906,10 +910,11 @@ function timeAgo(ts) {
 
   // Initial render + data fetch
   renderAll();
-  fetchHR().then(() => fetchMonthlyHR());
+  fetchHR();
+  fetchMonthlyHR();
 
   // Auto-refresh every 5 min
-  setInterval(() => { fetchHR().then(() => fetchMonthlyHR()); }, CACHE_TTL);
+  setInterval(() => { fetchHR(); fetchMonthlyHR(); }, CACHE_TTL);
 })();
 </script>
 
