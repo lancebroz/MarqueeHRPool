@@ -295,9 +295,19 @@
     border-radius: 10px;
     padding: 12px 14px 14px 18px;
     overflow: hidden;
-    transition: border-color 0.2s;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
   }
-  .period-card:hover { border-color: var(--border2); }
+  .period-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .period-card.loading { cursor: default; }
+  .period-card.loading:hover { transform: none; border-color: var(--border); }
+  .period-card.loading::before, .period-card.empty::before { background: var(--dim); }
+  .period-card.loading .period-rank,
+  .period-card.empty .period-rank { color: var(--dim); }
+  .period-card.loading .period-leader-name,
+  .period-card.empty .period-leader-name { color: var(--muted); }
+  .period-card.loading .period-leader-hr,
+  .period-card.empty .period-leader-hr { color: var(--dim); }
   .period-card::before {
     content: '';
     position: absolute;
@@ -305,7 +315,6 @@
     width: 3px; height: 100%;
     background: var(--gold);
   }
-  .period-card.empty::before { background: var(--dim); }
   .period-card-head {
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 8px; margin-bottom: 6px;
@@ -320,7 +329,6 @@
     font-size: 9px; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--gold);
   }
-  .period-card.empty .period-rank { color: var(--dim); }
   .period-leader-name {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700; font-size: 17px;
@@ -329,7 +337,6 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     line-height: 1.1;
   }
-  .period-card.empty .period-leader-name { color: var(--muted); }
   .period-leader-meta {
     display: flex; align-items: baseline; gap: 6px; margin-top: 6px;
   }
@@ -338,7 +345,6 @@
     font-size: 26px; color: var(--gold);
     letter-spacing: 0.02em; line-height: 1;
   }
-  .period-card.empty .period-leader-hr { color: var(--dim); }
   .period-leader-unit {
     font-family: 'DM Mono', monospace;
     font-size: 10px; letter-spacing: 0.15em;
@@ -411,6 +417,39 @@
 
   .modal-body { padding: 6px 0 4px; }
 
+  .period-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .period-row:last-child { border-bottom: none; }
+  .period-row-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--dim);
+    text-align: center;
+    line-height: 1;
+  }
+  .period-row-rank.tied { font-size: 14px; }
+  .period-row.gold .period-row-rank { color: var(--gold); }
+  .period-row.silver .period-row-rank { color: #b0b8c8; }
+  .period-row.bronze .period-row-rank { color: #c8845a; }
+  .period-row-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600; font-size: 15px;
+    letter-spacing: 0.03em; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .period-row-hr {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px; font-weight: 500;
+    color: var(--gold); min-width: 52px; text-align: right;
+  }
+  .period-row.zero .period-row-hr { color: var(--dim); }
+
   .player-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 11px 24px;
@@ -477,12 +516,12 @@
     <button class="modal-close" id="modal-close">✕</button>
     <div class="modal-head">
       <div>
-        <div class="modal-meta">Team Roster</div>
+        <div class="modal-meta" id="modal-meta-top">Team Roster</div>
         <div class="modal-team-name" id="modal-name"></div>
         <div class="modal-meta" id="modal-owner"></div>
       </div>
       <div class="modal-total-wrap">
-        <div class="modal-total-label">2026 HR</div>
+        <div class="modal-total-label" id="modal-total-label">2026 HR</div>
         <div class="modal-total" id="modal-total">—</div>
       </div>
     </div>
@@ -571,7 +610,8 @@ let lastFetch = 0;
 const CACHE_TTL = 5 * 60 * 1000;
 let activeLeague = 'marquee';
 let openDetail = null;
-let monthlyData = { marchApril: {}, may: {} };  // { leagueKey, teamName }
+let monthlyData = { marchApril: {}, may: {} };
+// openDetail: { type: 'team', leagueKey, teamName } | { type: 'period', periodKey } | null
 
 // ═══════════════════════════════════════════════
 //  MLB API
@@ -649,7 +689,10 @@ async function fetchHR(force) {
     lastFetch = now;
     setStatus('live', 'Live');
     renderAll();
-    if (openDetail) populateModal(openDetail.leagueKey, openDetail.teamName);
+    if (openDetail) {
+      if (openDetail.type === 'period') populatePeriodModal(openDetail.periodKey);
+      else populateModal(openDetail.leagueKey, openDetail.teamName);
+    }
   } catch(e) {
     console.warn('MLB API error:', e);
     setStatus('error', 'Offline');
@@ -713,6 +756,7 @@ async function fetchMonthlyHR() {
     console.log('MarchApril sample:', Object.keys(monthlyData.marchApril).slice(0, 5), 'count:', Object.keys(monthlyData.marchApril).length);
     console.log('May sample:', Object.keys(monthlyData.may).slice(0, 5), 'count:', Object.keys(monthlyData.may).length);
     renderAll();
+    if (openDetail && openDetail.type === 'period') populatePeriodModal(openDetail.periodKey);
   } catch(e) {
     console.warn('Monthly fetch error:', e);
   }
@@ -802,7 +846,7 @@ function renderPeriodLeaders(teams) {
       .sort((a, b) => b.total - a.total);
 
     if (!ranked.length) {
-      return `<div class="period-card empty">
+      return `<div class="period-card loading" data-period="${p.key}">
         <div class="period-card-head">
           <div class="period-label">${p.label}</div>
           <div class="period-rank">Leader</div>
@@ -818,7 +862,7 @@ function renderPeriodLeaders(teams) {
     const leader = ranked[0];
     const tiedCount = ranked.filter(r => r.total === leader.total).length;
     const isEmpty = leader.total === 0;
-    return `<div class="period-card${isEmpty ? ' empty' : ''}">
+    return `<div class="period-card${isEmpty ? ' empty' : ''}" data-period="${p.key}">
       <div class="period-card-head">
         <div class="period-label">${p.label}</div>
         <div class="period-rank">${tiedCount > 1 ? 'T1' : 'Leader'}</div>
@@ -884,7 +928,7 @@ function renderLeague(key) {
   }
 
   const ts = lastFetch ? `Updated ${timeAgo(lastFetch)}` : '';
-  const periodLeadersHTML = (dataLoaded && teams.length) ? renderPeriodLeaders(teams) : '';
+  const periodLeadersHTML = (key === 'marquee' && dataLoaded && teams.length) ? renderPeriodLeaders(teams) : '';
 
   el.innerHTML = `
     ${periodLeadersHTML}
@@ -913,6 +957,13 @@ function renderLeague(key) {
     });
   });
 
+  // Period card click handlers (skip loading-state cards with no data yet)
+  el.querySelectorAll('.period-card:not(.loading)').forEach(card => {
+    card.addEventListener('click', () => {
+      openPeriodModal(card.dataset.period);
+    });
+  });
+
   // Refresh button
   const btn = document.getElementById('refresh-' + key);
   if (btn) {
@@ -929,8 +980,14 @@ function renderLeague(key) {
 //  MODAL
 // ═══════════════════════════════════════════════
 function openModal(leagueKey, teamName) {
-  openDetail = { leagueKey, teamName };
+  openDetail = { type: 'team', leagueKey, teamName };
   populateModal(leagueKey, teamName);
+  document.getElementById('modal').classList.add('open');
+}
+
+function openPeriodModal(periodKey) {
+  openDetail = { type: 'period', periodKey };
+  populatePeriodModal(periodKey);
   document.getElementById('modal').classList.add('open');
 }
 
@@ -938,6 +995,8 @@ function populateModal(leagueKey, teamName) {
   const team = LEAGUES[leagueKey]?.teams?.find(t => t.name === teamName);
   if (!team) return;
   const total = teamTotal(team.players);
+  document.getElementById('modal-meta-top').textContent = 'Team Roster';
+  document.getElementById('modal-total-label').textContent = '2026 HR';
   document.getElementById('modal-name').textContent = team.name;
   document.getElementById('modal-owner').textContent = team.owner ? 'Owner: ' + team.owner : '';
   document.getElementById('modal-total').textContent = total != null ? total : '—';
@@ -946,6 +1005,44 @@ function populateModal(leagueKey, teamName) {
     return `<div class="player-row">
       <div class="player-name">${esc(name)}</div>
       <div class="player-hr${hr == null ? ' no-data' : ''}">${hr != null ? hr + ' HR' : '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function populatePeriodModal(periodKey) {
+  const PERIODS = {
+    marchApril: { label: 'March + April', data: monthlyData.marchApril },
+    may:        { label: 'May',           data: monthlyData.may }
+  };
+  const period = PERIODS[periodKey];
+  if (!period) return;
+
+  const teams = LEAGUES.marquee.teams;
+  const ranked = teams
+    .map(t => ({ name: t.name, total: teamMonthlyTotal(t.players, period.data) ?? 0 }))
+    .sort((a, b) => b.total - a.total);
+
+  const top5 = ranked.slice(0, 5);
+
+  // Tie-aware ranking using the full ranked list
+  const trueRanks = top5.map(t => ranked.findIndex(r => r.total === t.total) + 1);
+
+  document.getElementById('modal-meta-top').textContent = 'Period Leaders';
+  document.getElementById('modal-total-label').textContent = 'Pool Best';
+  document.getElementById('modal-name').textContent = period.label;
+  document.getElementById('modal-owner').textContent = 'Top 5 Lineups';
+  document.getElementById('modal-total').textContent = top5[0]?.total ?? '—';
+
+  document.getElementById('modal-body').innerHTML = top5.map((t, i) => {
+    const rank = trueRanks[i];
+    const isTied = ranked.filter(r => r.total === t.total).length > 1;
+    const rankLabel = isTied ? 'T' + rank : '' + rank;
+    const medal = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+    const zero = t.total === 0 ? 'zero' : '';
+    return `<div class="period-row ${medal} ${zero}">
+      <div class="period-row-rank${isTied ? ' tied' : ''}">${rankLabel}</div>
+      <div class="period-row-name">${esc(t.name)}</div>
+      <div class="period-row-hr">${t.total} HR</div>
     </div>`;
   }).join('');
 }
