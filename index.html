@@ -281,6 +281,76 @@
     color: var(--dim); text-align: center; margin-top: 14px;
   }
 
+  /* PERIOD LEADERS */
+  .period-leaders {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .period-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px 14px 18px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .period-card:hover { border-color: var(--border2); }
+  .period-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--gold);
+  }
+  .period-card.empty::before { background: var(--dim); }
+  .period-card-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 8px; margin-bottom: 6px;
+  }
+  .period-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .period-rank {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--gold);
+  }
+  .period-card.empty .period-rank { color: var(--dim); }
+  .period-leader-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 17px;
+    letter-spacing: 0.03em; text-transform: uppercase;
+    color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.1;
+  }
+  .period-card.empty .period-leader-name { color: var(--muted); }
+  .period-leader-meta {
+    display: flex; align-items: baseline; gap: 6px; margin-top: 6px;
+  }
+  .period-leader-hr {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px; color: var(--gold);
+    letter-spacing: 0.02em; line-height: 1;
+  }
+  .period-card.empty .period-leader-hr { color: var(--dim); }
+  .period-leader-unit {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .period-tied {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+    margin-left: auto;
+  }
+
   /* MODAL */
   .modal-overlay {
     position: fixed; inset: 0;
@@ -703,11 +773,64 @@ function teamTotal(players) {
   return any ? total : null;
 }
 
+function teamMonthlyTotal(players, monthData) {
+  if (!monthData || Object.keys(monthData).length === 0) return null;
+  let total = 0;
+  for (const p of players) {
+    total += getMonthlyHR(p, monthData) || 0;
+  }
+  return total;
+}
+
 // ═══════════════════════════════════════════════
 //  RENDER
 // ═══════════════════════════════════════════════
 function renderAll() {
   Object.keys(LEAGUES).forEach(renderLeague);
+}
+
+function renderPeriodLeaders(teams) {
+  const periods = [
+    { key: 'marchApril', label: 'Mar + Apr', data: monthlyData.marchApril },
+    { key: 'may',        label: 'May',       data: monthlyData.may }
+  ];
+
+  return '<div class="period-leaders">' + periods.map(p => {
+    const ranked = teams
+      .map(t => ({ name: t.name, total: teamMonthlyTotal(t.players, p.data) }))
+      .filter(t => t.total != null)
+      .sort((a, b) => b.total - a.total);
+
+    if (!ranked.length) {
+      return `<div class="period-card empty">
+        <div class="period-card-head">
+          <div class="period-label">${p.label}</div>
+          <div class="period-rank">Leader</div>
+        </div>
+        <div class="period-leader-name">—</div>
+        <div class="period-leader-meta">
+          <div class="period-leader-hr">—</div>
+          <div class="period-leader-unit">HR</div>
+        </div>
+      </div>`;
+    }
+
+    const leader = ranked[0];
+    const tiedCount = ranked.filter(r => r.total === leader.total).length;
+    const isEmpty = leader.total === 0;
+    return `<div class="period-card${isEmpty ? ' empty' : ''}">
+      <div class="period-card-head">
+        <div class="period-label">${p.label}</div>
+        <div class="period-rank">${tiedCount > 1 ? 'T1' : 'Leader'}</div>
+      </div>
+      <div class="period-leader-name">${esc(leader.name)}</div>
+      <div class="period-leader-meta">
+        <div class="period-leader-hr">${leader.total}</div>
+        <div class="period-leader-unit">HR</div>
+        ${tiedCount > 1 ? `<div class="period-tied">+${tiedCount - 1} tied</div>` : ''}
+      </div>
+    </div>`;
+  }).join('') + '</div>';
 }
 
 function renderLeague(key) {
@@ -761,8 +884,10 @@ function renderLeague(key) {
   }
 
   const ts = lastFetch ? `Updated ${timeAgo(lastFetch)}` : '';
+  const periodLeadersHTML = (dataLoaded && teams.length) ? renderPeriodLeaders(teams) : '';
 
   el.innerHTML = `
+    ${periodLeadersHTML}
     <div class="lb-card">
       <div class="lb-header">
         <div>
