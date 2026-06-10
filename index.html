@@ -284,7 +284,7 @@
   /* PERIOD LEADERS */
   .period-leaders {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-bottom: 14px;
   }
@@ -477,6 +477,15 @@
     main { padding: 20px 16px 60px; }
     .header-inner { padding: 16px 16px 0; }
     .tab { padding: 10px 12px; font-size: 12px; }
+    .period-leaders { gap: 6px; }
+    .period-card { padding: 10px 10px 12px 12px; }
+    .period-card::before { width: 2px; }
+    .period-label { font-size: 8px; letter-spacing: 0.14em; }
+    .period-rank { font-size: 8px; letter-spacing: 0.1em; }
+    .period-leader-name { font-size: 14px; }
+    .period-leader-hr { font-size: 22px; }
+    .period-leader-unit { font-size: 9px; }
+    .period-tied { display: none; }
   }
 </style>
 </head>
@@ -610,7 +619,7 @@ let lastFetch = 0;
 const CACHE_TTL = 5 * 60 * 1000;
 let activeLeague = 'marquee';
 let openDetail = null;
-let monthlyData = { marchApril: {}, may: {} };
+let monthlyData = { marchApril: {}, may: {}, june: {} };
 // openDetail: { type: 'team', leagueKey, teamName } | { type: 'period', periodKey } | null
 
 // ═══════════════════════════════════════════════
@@ -753,8 +762,10 @@ async function fetchMonthlyHR() {
 
     monthlyData.marchApril = await fetchPeriod('2026-03-25', '2026-04-30');
     monthlyData.may = await fetchPeriod('2026-05-01', '2026-05-31');
+    monthlyData.june = await fetchPeriod('2026-06-01', '2026-06-30');
     console.log('MarchApril sample:', Object.keys(monthlyData.marchApril).slice(0, 5), 'count:', Object.keys(monthlyData.marchApril).length);
     console.log('May sample:', Object.keys(monthlyData.may).slice(0, 5), 'count:', Object.keys(monthlyData.may).length);
+    console.log('June sample:', Object.keys(monthlyData.june).slice(0, 5), 'count:', Object.keys(monthlyData.june).length);
     renderAll();
     if (openDetail && openDetail.type === 'period') populatePeriodModal(openDetail.periodKey);
   } catch(e) {
@@ -836,7 +847,8 @@ function renderAll() {
 function renderPeriodLeaders(teams) {
   const periods = [
     { key: 'marchApril', label: 'Mar + Apr', data: monthlyData.marchApril },
-    { key: 'may',        label: 'May',       data: monthlyData.may }
+    { key: 'may',        label: 'May',       data: monthlyData.may },
+    { key: 'june',       label: 'June',      data: monthlyData.june }
   ];
 
   return '<div class="period-leaders">' + periods.map(p => {
@@ -1012,7 +1024,8 @@ function populateModal(leagueKey, teamName) {
 function populatePeriodModal(periodKey) {
   const PERIODS = {
     marchApril: { label: 'March + April', data: monthlyData.marchApril },
-    may:        { label: 'May',           data: monthlyData.may }
+    may:        { label: 'May',           data: monthlyData.may },
+    june:       { label: 'June',          data: monthlyData.june }
   };
   const period = PERIODS[periodKey];
   if (!period) return;
