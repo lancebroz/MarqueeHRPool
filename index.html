@@ -284,7 +284,7 @@
   /* PERIOD LEADERS */
   .period-leaders {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 10px;
     margin-bottom: 14px;
   }
@@ -617,7 +617,7 @@ let lastFetch = 0;
 const CACHE_TTL = 5 * 60 * 1000;
 let activeLeague = 'marquee';
 let openDetail = null;
-let monthlyData = { marchApril: {}, may: {}, june: {}, july: {} };
+let monthlyData = { marchApril: {}, may: {}, june: {}, july: {}, august: {} };
 // openDetail: { type: 'team', leagueKey, teamName } | { type: 'period', periodKey } | null
 
 // ═══════════════════════════════════════════════
@@ -762,10 +762,12 @@ async function fetchMonthlyHR() {
     monthlyData.may = await fetchPeriod('2026-05-01', '2026-05-31');
     monthlyData.june = await fetchPeriod('2026-06-01', '2026-06-30');
     monthlyData.july = await fetchPeriod('2026-07-01', '2026-07-31');
+    monthlyData.august = await fetchPeriod('2026-08-01', '2026-08-31');
     console.log('MarchApril sample:', Object.keys(monthlyData.marchApril).slice(0, 5), 'count:', Object.keys(monthlyData.marchApril).length);
     console.log('May sample:', Object.keys(monthlyData.may).slice(0, 5), 'count:', Object.keys(monthlyData.may).length);
     console.log('June sample:', Object.keys(monthlyData.june).slice(0, 5), 'count:', Object.keys(monthlyData.june).length);
     console.log('July sample:', Object.keys(monthlyData.july).slice(0, 5), 'count:', Object.keys(monthlyData.july).length);
+    console.log('August sample:', Object.keys(monthlyData.august).slice(0, 5), 'count:', Object.keys(monthlyData.august).length);
     renderAll();
     if (openDetail && openDetail.type === 'period') populatePeriodModal(openDetail.periodKey);
   } catch(e) {
@@ -849,7 +851,8 @@ function renderPeriodLeaders(teams) {
     { key: 'marchApril', label: 'Mar + Apr', data: monthlyData.marchApril },
     { key: 'may',        label: 'May',       data: monthlyData.may },
     { key: 'june',       label: 'June',      data: monthlyData.june },
-    { key: 'july',       label: 'July',      data: monthlyData.july }
+    { key: 'july',       label: 'July',      data: monthlyData.july },
+    { key: 'august',     label: 'August',    data: monthlyData.august }
   ];
 
   return '<div class="period-leaders">' + periods.map(p => {
@@ -1027,7 +1030,8 @@ function populatePeriodModal(periodKey) {
     marchApril: { label: 'March + April', data: monthlyData.marchApril },
     may:        { label: 'May',           data: monthlyData.may },
     june:       { label: 'June',          data: monthlyData.june },
-    july:       { label: 'July',          data: monthlyData.july }
+    july:       { label: 'July',          data: monthlyData.july },
+    august:     { label: 'August',        data: monthlyData.august }
   };
   const period = PERIODS[periodKey];
   if (!period) return;
